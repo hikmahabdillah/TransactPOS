@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductsController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,3 +21,6 @@ Route::prefix('category')->group(function () {
 
 // USER
 Route::get('/user/{id}/name/{name}', [UserController::class, 'index']);
+
+// TRANSACTION
+Route::get('/transaction', [TransactionController::class, 'index']);
