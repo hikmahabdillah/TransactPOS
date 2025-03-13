@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LevelController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
@@ -8,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 
 // HOME
 Route::get('/', [HomeController::class, 'index']);
+
+// LEVEL
+Route::get('/level', [LevelController::class, 'index']);
 
 // PRODUCTS
 Route::prefix('category')->group(function () {
