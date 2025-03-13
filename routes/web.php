@@ -13,7 +13,12 @@ Route::get('/', [HomeController::class, 'index']);
 
 // LEVEL
 Route::get('/level', [LevelController::class, 'index']);
+
+// KATEGORI
 Route::get('/kategori', [KategoriController::class, 'index']);
+
+// USER
+Route::get('/user', [UserController::class, 'index']);
 
 // PRODUCTS
 Route::prefix('category')->group(function () {
@@ -26,7 +31,7 @@ Route::prefix('category')->group(function () {
 });
 
 // USER
-Route::get('/user/{id}/name/{name}', [UserController::class, 'index']);
+Route::get('/user/{id}/name/{name}', [UserController::class, 'profile']);
 
 // TRANSACTION
 Route::get('/transaction', [TransactionController::class, 'index']);
