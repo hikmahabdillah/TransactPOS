@@ -28,8 +28,17 @@ class UserController extends Controller
 
         // $user = UserModel::where('username', 'manager9')->findOrFail();
 
-        $user = UserModel::where('level_id', 2)->count(); //untuk menghitung banyaknya data yang muncul dengan level id 2
+        // $user = UserModel::where('level_id', 2)->count(); //untuk menghitung banyaknya data yang muncul dengan level id 2
         // dd($user); //(dump and die) menampilkan isi dari variable user
+
+        $user = UserModel::firstOrCreate(
+            [
+                'username' => 'manager22',
+                'nama' => 'Manager Dua Dua',
+                'password' => Hash::make('12345'),
+                'level_id' => 2
+            ]
+        );
         return view('user', ['data' => $user]);
     }
 
