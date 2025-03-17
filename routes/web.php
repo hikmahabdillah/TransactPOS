@@ -6,10 +6,11 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\ProductsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
 // HOME
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [WelcomeController::class, 'index']);
 
 // LEVEL
 Route::get('/level', [LevelController::class, 'index']);
