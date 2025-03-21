@@ -118,7 +118,6 @@ class UserController extends Controller
 
     public function store_ajax(Request $request)
     {
-        // cek apakah request berupa ajax
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 'level_id' => 'required|integer',
@@ -127,14 +126,13 @@ class UserController extends Controller
                 'password' => 'required|min:6'
             ];
 
-            // use Illuminate\Support\Facades\Validator;
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([
-                    'status' => false, // response status, false: error/gagal, true: berhasil
+                    'status' => false,
                     'message' => 'Validasi Gagal',
-                    'msgField' => $validator->errors(), // pesan error validasi
+                    'msgField' => $validator->errors(),
                 ]);
             }
 
@@ -145,8 +143,9 @@ class UserController extends Controller
             ]);
         }
 
-        redirect('/');
+        return redirect('/');
     }
+
 
     // Menampilkan detail user
     public function show(string $id)
@@ -243,7 +242,6 @@ class UserController extends Controller
                 ]);
             }
         }
-
         return redirect('/');
     }
 
