@@ -285,51 +285,31 @@ class UserController extends Controller
         }
     }
 
-
-    public function tambah()
-    {
-        return view('user_tambah');
-    }
-    public function tambah_simpan(Request $request)
-    {
-        UserModel::create([
-            'username' => $request->username,
-            'nama' => $request->nama,
-            'password' => Hash::make($request->password),
-            'level_id' => $request->level_id
-        ]);
-
-        return redirect('/user');
-    }
-    public function ubah($id)
-    {
-        $user = UserModel::find($id);
-        return view('user_ubah', ['data' => $user]);
-    }
-    public function ubah_simpan($id, Request $request)
+    public function confirm_ajax(string $id)
     {
         $user = UserModel::find($id);
 
-        $user->username = $request->username;
-        $user->nama = $request->nama;
-        $user->password = Hash::make($request->password);
-        $user->level_id = $request->level_id;
-
-        $user->save();
-
-        return redirect('/user');
+        return view('user.confirm_ajax', ['user' => $user]);
     }
-    public function hapus($id)
+    public function delete_ajax(Request $request, $id)
     {
-        $user = UserModel::find($id);
-        $user->delete();
+        // cek apakah request dari ajax
+        if ($request->ajax() || $request->wantsJson()) {
+            $user = UserModel::find($id);
+            if ($user) {
+                $user->delete();
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data berhasil dihapus'
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+        }
 
-        return redirect('/user');
-    }
-
-    // soal praktikum sebelumnya
-    public function profile($id, $name)
-    {
-        return view('user.profile', ['id' => $id, 'name' => $name]);
+        return redirect('/');
     }
 }
