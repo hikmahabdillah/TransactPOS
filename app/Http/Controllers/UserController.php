@@ -386,4 +386,72 @@ class UserController extends Controller
 
         return redirect('/');
     }
+
+    public function export_excel(Request $request)
+    {
+        // Get user data with level relationship
+        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+            ->with('level')
+            ->orderBy('user_id');
+
+        // Apply level filter if provided
+        if ($request->level_id) {
+            $users->where('level_id', $request->level_id);
+        }
+
+        $users = $users->get();
+
+        // Load Excel library
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Username');
+        $sheet->setCellValue('C1', 'Nama');
+        $sheet->setCellValue('D1', 'Level');
+        $sheet->setCellValue('E1', 'ID User');
+        $sheet->setCellValue('F1', 'ID Level');
+
+        // Make headers bold
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true);
+
+        // Populate data
+        $no = 1;
+        $row = 2;
+        foreach ($users as $user) {
+            $sheet->setCellValue('A' . $row, $no);
+            $sheet->setCellValue('B' . $row, $user->username);
+            $sheet->setCellValue('C' . $row, $user->nama);
+            $sheet->setCellValue('D' . $row, $user->level->level_nama ?? ''); // Access level name through relationship
+            $sheet->setCellValue('E' . $row, $user->user_id);
+            $sheet->setCellValue('F' . $row, $user->level_id);
+            $row++;
+            $no++;
+        }
+
+        // Auto-size columns
+        foreach (range('A', 'F') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        // Set sheet title
+        $sheet->setTitle('Data User');
+
+        // Create writer and set headers for download
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data User ' . date('Y-m-d H:i:s') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+        exit;
+    }
 }

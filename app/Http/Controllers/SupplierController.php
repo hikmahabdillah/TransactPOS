@@ -337,4 +337,70 @@ class SupplierController extends Controller
 
         return redirect('/');
     }
+
+    public function export_excel(Request $request)
+    {
+        // Get supplier data to export (with optional filtering)
+        $suppliers = SupplierModel::select('supplier_id', 'supplier_kode', 'supplier_nama', 'supplier_alamat')
+            ->orderBy('supplier_id');
+
+        // Apply the same filter as in list() method
+        $filter_nama = $request->input('filter_nama');
+        if (!empty($filter_nama)) {
+            $suppliers->where('supplier_nama', 'like', '%' . $filter_nama . '%');
+        }
+
+        $suppliers = $suppliers->get();
+
+        // Load Excel library
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Kode Supplier');
+        $sheet->setCellValue('C1', 'Nama Supplier');
+        $sheet->setCellValue('D1', 'Alamat Supplier');
+        $sheet->setCellValue('E1', 'ID Supplier');
+
+        // Make headers bold
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+
+        // Populate data
+        $no = 1;
+        $row = 2;
+        foreach ($suppliers as $supplier) {
+            $sheet->setCellValue('A' . $row, $no);
+            $sheet->setCellValue('B' . $row, $supplier->supplier_kode);
+            $sheet->setCellValue('C' . $row, $supplier->supplier_nama);
+            $sheet->setCellValue('D' . $row, $supplier->supplier_alamat);
+            $sheet->setCellValue('E' . $row, $supplier->supplier_id);
+            $row++;
+            $no++;
+        }
+
+        // Auto-size columns
+        foreach (range('A', 'E') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        // Set sheet title
+        $sheet->setTitle('Data Supplier');
+
+        // Create writer and set headers for download
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data Supplier ' . date('Y-m-d H:i:s') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+        exit;
+    }
 }
