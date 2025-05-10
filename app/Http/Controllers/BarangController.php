@@ -60,7 +60,7 @@ class BarangController extends Controller
     public function create_ajax()
     {
         $kategori = KategoriModel::select('kategori_id', 'kategori_nama')->get();
-        return view('barang.create_ajax')->with('kategori', $kategori);
+        return view('barang.create_ajax')->with('kategoris', $kategori);
     }
 
     public function store_ajax(Request $request)
@@ -98,7 +98,8 @@ class BarangController extends Controller
     {
         $barang = BarangModel::find($id);
         $level  = LevelModel::select('level_id', 'level_nama')->get();
-        return view('barang.edit_ajax', ['barang' => $barang, 'level' => $level]);
+        $kategoris = KategoriModel::all();
+        return view('barang.edit_ajax', ['barang' => $barang, 'level' => $level, 'kategoris' => $kategoris]);
     }
 
     public function update_ajax(Request $request, $id)
@@ -165,6 +166,31 @@ class BarangController extends Controller
 
         return redirect('/');
     }
+
+    // Menampilkan detail barang
+    public function show_ajax(string $id)
+    {
+        $barang = BarangModel::with('kategori')->find($id);
+
+        $breadcrumb = (object)[
+            'title' => 'Detail Barang',
+            'list'  => ['Home', 'Barang', 'Detail']
+        ];
+
+        $page = (object)[
+            'title' => 'Detail barang'
+        ];
+
+        $activeMenu = 'barang';
+
+        return view('barang.show', [
+            'breadcrumb' => $breadcrumb,
+            'page' => $page,
+            'barang' => $barang,
+            'activeMenu' => $activeMenu
+        ]);
+    }
+
 
     public function import()
     {

@@ -62,9 +62,9 @@
                 $('#myModal').modal('show');
             });
         }
-        var tableBarang;
+        let dataBarang;
         $(document).ready(function() {
-            tableBarang = $('#table-barang').DataTable({
+            dataBarang = $('#table-barang').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
