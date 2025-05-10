@@ -5,27 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\SupplierModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Yajra\DataTables\Facades\DataTables;
 
 class SupplierController extends Controller
 {
-    // Menampilkan halaman daftar supplier
-    public function index(Request $request)
+    // Menampilkan halaman awal daftar supplier
+    public function index()
     {
-        if ($request->ajax()) {
-            $supplier = SupplierModel::select('supplier_id', 'supplier_kode', 'supplier_nama', 'supplier_alamat');
-
-            return DataTables::of($supplier)
-                ->addIndexColumn()
-                ->addColumn('aksi', function ($supplier) {
-                    $btn  = '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
-                    $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
-                    $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
-                    return $btn;
-                })
-                ->rawColumns(['aksi'])
-                ->make(true);
-        }
+        $activeMenu = 'supplier';
 
         $breadcrumb = (object)[
             'title' => 'Daftar Supplier',
@@ -36,14 +24,35 @@ class SupplierController extends Controller
             'title' => 'Daftar supplier yang tersedia dalam sistem'
         ];
 
-        $activeMenu = 'supplier';
-
         return view('supplier.index', [
             'breadcrumb' => $breadcrumb,
             'page' => $page,
             'activeMenu' => $activeMenu
         ]);
     }
+
+    // Digunakan oleh DataTables untuk mengambil data supplier secara AJAX
+    public function list(Request $request)
+    {
+        $supplier = SupplierModel::select('supplier_id', 'supplier_kode', 'supplier_nama', 'supplier_alamat');
+
+        $filter_nama = $request->input('filter_nama');
+        if (!empty($filter_nama)) {
+            $supplier->where('supplier_nama', 'like', '%' . $filter_nama . '%');
+        }
+
+        return DataTables::of($supplier)
+            ->addIndexColumn()
+            ->addColumn('aksi', function ($supplier) {
+                $btn  = '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/supplier/' . $supplier->supplier_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
+                return $btn;
+            })
+            ->rawColumns(['aksi'])
+            ->make(true);
+    }
+
 
     public function create_ajax()
     {
@@ -267,5 +276,65 @@ class SupplierController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             return redirect('/supplier')->with('error', 'Data supplier gagal dihapus karena masih terdapat tabel lain yang terkait');
         }
+    }
+
+    public function import()
+    {
+        return view('supplier.import');
+    }
+
+    public function import_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'file_supplier' => ['required', 'mimes:xlsx', 'max:1024']
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => 'Validasi Gagal',
+                    'msgField'  => $validator->errors()
+                ]);
+            }
+
+            $file = $request->file('file_supplier');
+            $reader = IOFactory::createReader('Xlsx');
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, false, true, true);
+
+            $insert = [];
+            if (count($data) > 1) {
+                foreach ($data as $baris => $value) {
+                    if ($baris > 1) {
+                        $insert[] = [
+                            'supplier_kode'  => $value['A'],
+                            'supplier_nama'  => $value['B'],
+                            'supplier_alamat' => $value['C'],
+                            'created_at'     => now(),
+                        ];
+                    }
+                }
+
+                if (count($insert) > 0) {
+                    SupplierModel::insertOrIgnore($insert);
+                }
+
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Data supplier berhasil diimport'
+                ]);
+            }
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Tidak ada data supplier yang diimport'
+            ]);
+        }
+
+        return redirect('/');
     }
 }

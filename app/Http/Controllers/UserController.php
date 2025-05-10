@@ -7,6 +7,7 @@ use App\Models\UserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -308,6 +309,79 @@ class UserController extends Controller
                     'message' => 'Data tidak ditemukan'
                 ]);
             }
+        }
+
+        return redirect('/');
+    }
+
+    public function import()
+    {
+        return view('user.import');
+    }
+
+    public function import_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'file_user' => ['required', 'mimes:xlsx', 'max:1024'],
+                'password_default' => ['required', 'string', 'min:3'] // Password default untuk semua user
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'    => false,
+                    'message'   => 'Validasi Gagal',
+                    'msgField'  => $validator->errors()
+                ]);
+            }
+
+            $file = $request->file('file_user');
+            $reader = IOFactory::createReader('Xlsx');
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, false, true, true);
+
+            $insert = [];
+            if (count($data) > 1) {
+                foreach ($data as $baris => $value) {
+                    if ($baris > 1) {
+                        $insert[] = [
+                            'username' => $value['A'],
+                            'nama' => $value['B'],
+                            'password' => bcrypt($request->password_default),
+                            'level_id' => $value['C'],
+                            'created_at' => now(),
+                        ];
+                    }
+                }
+
+                if (count($insert) > 0) {
+                    try {
+                        UserModel::insertOrIgnore($insert);
+                        return response()->json([
+                            'status'  => true,
+                            'message' => 'Data user berhasil diimport'
+                        ]);
+                    } catch (\Exception $e) {
+                        return response()->json([
+                            'status'  => false,
+                            'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                        ]);
+                    }
+                }
+
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Tidak ada data user yang diimport'
+                ]);
+            }
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'File yang diupload kosong atau format tidak sesuai'
+            ]);
         }
 
         return redirect('/');

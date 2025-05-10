@@ -168,7 +168,7 @@ class BarangController extends Controller
     }
 
     // Menampilkan detail barang
-    public function show_ajax(string $id)
+    public function show(string $id)
     {
         $barang = BarangModel::with('kategori')->find($id);
 
@@ -190,7 +190,6 @@ class BarangController extends Controller
             'activeMenu' => $activeMenu
         ]);
     }
-
 
     public function import()
     {

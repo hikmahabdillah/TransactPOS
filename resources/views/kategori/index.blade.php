@@ -3,14 +3,37 @@
 @section('content')
     <div class="card card-outline card-primary">
         <div class="card-header">
-            <h3 class="card-title">{{ $page->title }}</h3>
+            <h3 class="card-title">{{ $breadcrumb->title }}</h3>
             <div class="card-tools">
+                <button onclick="modalAction('{{ url('/kategori/import') }}')" class="mt-1 btn btn-sm btn-info">Import
+                    Kategori</button>
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('kategori/create') }}">Tambah</a>
-                <button onclick="modalAction('{{ url('kategori/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah
-                    Ajax</button>
+                <button onclick="modalAction('{{ url('kategori/create_ajax') }}')" class="btn btn-sm btn-success mt-1">
+                    Tambah Ajax
+                </button>
             </div>
         </div>
         <div class="card-body">
+            {{-- <!-- Filter Kategori -->
+            <div id="filter" class="form-horizontal p-2 border-bottom mb-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group form-group-sm row text-sm mb-0">
+                            <label for="filter_kategori" class="col-md-1 col-form-label">Filter</label>
+                            <div class="col-md-3">
+                                <select name="filter_kategori" class="form-control form-control-sm filter_kategori">
+                                    <option value="">- Semua -</option>
+                                    @foreach ($kategori_filter as $kategori)
+                                        <option value="{{ $kategori->kategori_id }}">{{ $kategori->kategori_nama }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="form-text text-muted">Kategori</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -28,6 +51,7 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
+                <tbody></tbody>
             </table>
         </div>
     </div>
@@ -42,12 +66,20 @@
                 $('#myModal').modal('show');
             });
         }
-        let dataKategori;
+
+        let tableKategori;
+
         $(document).ready(function() {
-            dataKategori = $('#table_kategori').DataTable({
+            tableKategori = $('#table_kategori').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ url('kategori') }}",
+                ajax: {
+                    url: "{{ url('kategori/list') }}",
+                    type: "POST",
+                    // data: function(d) {
+                    //     d.filter_kategori = $('.filter_kategori').val();
+                    // }
+                },
                 columns: [{
                         data: 'DT_RowIndex',
                         className: 'text-center',
@@ -55,17 +87,25 @@
                         searchable: false
                     },
                     {
-                        data: 'kategori_kode'
+                        data: 'kategori_kode',
+                        width: "25%"
                     },
                     {
-                        data: 'kategori_nama'
+                        data: 'kategori_nama',
+                        width: "35%"
                     },
                     {
                         data: 'aksi',
+                        className: 'text-center',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        width: "30%"
                     }
                 ]
+            });
+
+            $('.filter_kategori').change(function() {
+                tableKategori.draw();
             });
         });
     </script>

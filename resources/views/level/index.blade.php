@@ -1,25 +1,27 @@
 @extends('layouts.template')
 
 @section('content')
-    <div class="card card-outline card-primary">
+    <div class="card">
         <div class="card-header">
-            <h3 class="card-title">{{ $page->title }}</h3>
+            <h3 class="card-title">{{ $breadcrumb->title }}</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('level/create') }}">Tambah</a>
-                <button onclick="modalAction('{{ url('level/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah
-                    Ajax</button>
+                <button onclick="modalAction('{{ url('/level/import') }}')" class="btn btn-info">Import
+                    Level</button>
+                <a class="btn btn-primary" href="{{ url('level/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('level/create_ajax') }}')" class="btn btn-success">Tambah (Ajax)</button>
             </div>
         </div>
         <div class="card-body">
+            {{-- Notifikasi --}}
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
-
             @if (session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
-            <table class="table table-bordered table-striped table-hover table-sm" id="table_level">
+            {{-- Tabel Data --}}
+            <table class="table table-bordered table-sm table-striped table-hover" id="table_level">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -28,15 +30,15 @@
                         <th>Aksi</th>
                     </tr>
                 </thead>
+                <tbody></tbody>
             </table>
         </div>
     </div>
-    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static"
-        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
-@endsection
 
-@push('css')
-@endpush
+    {{-- Modal --}}
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" data-backdrop="static" data-keyboard="false"
+        data-width="75%"></div>
+@endsection
 
 @push('js')
     <script>
@@ -45,32 +47,59 @@
                 $('#myModal').modal('show');
             });
         }
+
         let dataLevel;
+
         $(document).ready(function() {
             dataLevel = $('#table_level').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ url('level/') }}",
-                dataType: "json",
-                type: "GET",
+                ajax: {
+                    url: "{{ url('level/list') }}",
+                    dataType: "json",
+                    type: "POST",
+                },
                 columns: [{
                         data: 'DT_RowIndex',
                         className: 'text-center',
+                        width: '5%',
                         orderable: false,
                         searchable: false
                     },
                     {
-                        data: 'level_kode'
+                        data: 'level_kode',
+                        className: '',
+                        width: '20%',
+                        orderable: true,
+                        searchable: true
                     },
                     {
-                        data: 'level_nama'
+                        data: 'level_nama',
+                        className: '',
+                        width: '45%',
+                        orderable: true,
+                        searchable: true
                     },
                     {
                         data: 'aksi',
+                        className: 'text-center',
+                        width: '20%',
                         orderable: false,
                         searchable: false
                     }
                 ]
+            });
+
+            // Jika nanti ada filter
+            $('.filter_kode').change(function() {
+                dataLevel.draw();
+            });
+
+            // Optional: pencarian manual dengan enter
+            $('#table_level_filter input').unbind().bind().on('keyup', function(e) {
+                if (e.keyCode == 13) {
+                    dataLevel.search(this.value).draw();
+                }
             });
         });
     </script>

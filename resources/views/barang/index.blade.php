@@ -2,7 +2,7 @@
 @section('content')
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Daftar barang</h3>
+            <h3 class="card-title">{{ $breadcrumb->title }}</h3>
             <div class="card-tools">
                 <button onclick="modalAction('{{ url('/barang/import') }}')" class="btn btn-info">Import Barang</button>
                 <a href="{{ url('/barang/create') }}" class="btn btn-primary">Tambah Data</a>
@@ -41,7 +41,7 @@
                     <tr>
                         <th>No</th>
                         <th>Kode Barang</th>
-                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
                         <th>Harga Beli</th>
                         <th>Harga Jual</th>
                         <th>Kategori</th>
