@@ -49,6 +49,12 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
         });
     });
 
+    // untuk update profile
+    Route::group(['prefix' => 'user'], function () {
+        Route::get('/update_profile', [UserController::class, 'update_profile']); // menampilkan halaman form edit profile
+        Route::post('/update_profile', [UserController::class, 'update_profile_post']); // menyimpan perubahan data profile
+    });
+
     // LEVEL
     // artinya semua route di dalam group ini harus punya role ADM(Administrator)
     Route::middleware(['authorize:ADM'])->group(function () {

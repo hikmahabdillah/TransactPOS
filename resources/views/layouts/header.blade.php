@@ -135,5 +135,11 @@
                 <i class="fas fa-th-large"></i>
             </a>
         </li>
+        <li class="nav-item d-flex align-items-center gap-2">
+            <img src="{{ asset('storage/' . auth()->user()->profile_image) ?? 'profile_default.jpg' }}"
+                class="rounded-circle mr-2" style="object-fit: cover" width="40" height="40"
+                alt="Profile" />
+            <span>{{ auth()->user()->nama }}</span>
+        </li>
     </ul>
 </nav>

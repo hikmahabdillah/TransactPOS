@@ -34,6 +34,13 @@
                     <p>Data User</p>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ url('/user/update_profile') }}"
+                    class="nav-link {{ $activeMenu == 'update_profile' ? 'active' : '' }}">
+                    <i class="nav-icon far fa-user"></i>
+                    <p>Update Profile</p>
+                </a>
+            </li>
 
             <li class="nav-header">Data Barang</li>
             <li class="nav-item">
